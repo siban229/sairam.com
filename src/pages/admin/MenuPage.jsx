@@ -12,12 +12,14 @@ import {
   Sparkles,
   ToggleLeft,
   ToggleRight,
+  Eye,
+  EyeOff,
   Flame,
   Leaf
 } from 'lucide-react';
 
 export default function MenuPage() {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleItemAvailability } = useCafe();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleItemAvailability, toggleItemQrVisibility } = useCafe();
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,8 +47,11 @@ export default function MenuPage() {
     'Sandwich',
     'Cold Drinks',
     'Desserts',
-    'Snacks'
+    'Snacks',
+    'Other'
   ];
+
+  const standardCategories = categories.filter(c => c !== 'All' && c !== 'Other');
 
   // Image presets for quick demo item creation
   const imagePresets = {
@@ -58,6 +63,7 @@ export default function MenuPage() {
     "Cold Drinks": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop&q=80",
     Desserts: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&auto=format&fit=crop&q=80",
     Snacks: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&auto=format&fit=crop&q=80"
+    ,Other: "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80"
   };
 
   const filteredItems = menuItems.filter(item => {
@@ -72,6 +78,7 @@ export default function MenuPage() {
     setFormData({
       name: '',
       category: 'Coffee',
+      customCategory: '',
       price: '',
       description: '',
       isVeg: true,
@@ -87,7 +94,8 @@ export default function MenuPage() {
     setEditingItem(item);
     setFormData({
       name: item.name,
-      category: item.category,
+      category: standardCategories.includes(item.category) ? item.category : 'Other',
+      customCategory: standardCategories.includes(item.category) ? '' : item.category,
       price: item.price,
       description: item.description,
       isVeg: item.isVeg,
@@ -102,15 +110,20 @@ export default function MenuPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.price) return;
+    const finalCategory = formData.category === 'Other'
+      ? formData.customCategory.trim() || 'Other'
+      : formData.category;
 
     if (editingItem) {
       updateMenuItem(editingItem.id, {
         ...formData,
+        category: finalCategory,
         price: Number(formData.price)
       });
     } else {
       addMenuItem({
         ...formData,
+        category: finalCategory,
         price: Number(formData.price),
         image: formData.image || imagePresets[formData.category] || imagePresets.Coffee
       });
@@ -234,20 +247,25 @@ export default function MenuPage() {
               </div>
             </div>
 
-            {/* Bottom Actions: In-Stock Toggle + Edit + Delete */}
+            {/* Bottom Actions: stock + QR visibility + edit + delete */}
             <div className="p-3 bg-[#FAF7F2] border-t border-[#E8E0D5] flex items-center justify-between text-xs">
-              <button
-                onClick={() => toggleItemAvailability(item.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition-colors ${
-                  item.available
-                    ? 'text-emerald-700 bg-emerald-100/70 hover:bg-emerald-200'
-                    : 'text-gray-500 bg-gray-200 hover:bg-gray-300'
-                }`}
-                title="Toggle Instant Availability"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${item.available ? 'bg-emerald-600' : 'bg-gray-400'}`} />
-                <span>{item.available ? 'In Stock' : 'Sold Out'}</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => toggleItemAvailability(item.id)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-bold transition-colors ${item.available ? 'text-emerald-700 bg-emerald-100/70 hover:bg-emerald-200' : 'text-gray-500 bg-gray-200 hover:bg-gray-300'}`}
+                  title="Toggle kitchen stock"
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${item.available ? 'bg-emerald-600' : 'bg-gray-400'}`} />
+                  <span>{item.available ? 'In Stock' : 'Sold Out'}</span>
+                </button>
+                <button
+                  onClick={() => toggleItemQrVisibility(item.id)}
+                  className={`p-1.5 rounded-lg transition-colors ${item.showOnQr === false ? 'text-gray-400 hover:bg-gray-200' : 'text-[#E58A3A] bg-orange-50 hover:bg-orange-100'}`}
+                  title={item.showOnQr === false ? 'Show on QR menu' : 'Hide from QR menu'}
+                >
+                  {item.showOnQr === false ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
 
               <div className="flex items-center gap-1">
                 <button
@@ -325,6 +343,16 @@ export default function MenuPage() {
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {formData.category === 'Other' && (
+                    <input
+                      type="text"
+                      required
+                      value={formData.customCategory}
+                      onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                      placeholder="Type your category name"
+                      className="w-full mt-2 text-xs font-semibold py-2 px-3 rounded-xl bg-[#FAF7F2] border border-[#E8E0D5] text-[#241A14] focus:outline-none focus:ring-2 focus:ring-[#E58A3A]"
+                    />
+                  )}
                 </div>
 
                 <div>

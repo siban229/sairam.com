@@ -43,7 +43,8 @@ export const CATEGORIES = [
   "Sandwich",
   "Cold Drinks",
   "Desserts",
-  "Snacks"
+  "Snacks",
+  "Other"
 ];
 
 export const INITIAL_MENU_ITEMS = [

@@ -55,22 +55,22 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-[#241A14] text-[#F8F5F0] flex flex-col justify-between border-r border-[#5C3A21]/30 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-white text-[#24324A] flex flex-col justify-between border-r border-[#E5EAF2] shadow-[8px_0_28px_rgba(36,50,74,0.06)] transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Top: Logo & Cafe Identity */}
         <div>
-          <div className="p-5 flex items-center justify-between border-b border-[#5C3A21]/40">
+          <div className="p-5 flex items-center justify-between border-b border-[#E5EAF2]">
             <Link to="/admin" className="flex items-center gap-3 group" onClick={closeMobileSidebar}>
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#E58A3A] to-[#5C3A21] flex items-center justify-center shadow-lg shadow-[#E58A3A]/20 group-hover:scale-105 transition-transform">
                 <Coffee className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-sm text-white tracking-tight leading-tight">
+                <h1 className="font-bold text-sm text-[#24324A] tracking-tight leading-tight">
                   {settings.cafeName || 'Sairam Chahawala'}
                 </h1>
-                <p className="text-[10px] text-[#A8988B] truncate max-w-[140px] uppercase tracking-wider font-semibold">
+                <p className="text-[10px] text-[#8290A5] truncate max-w-[140px] uppercase tracking-wider font-semibold">
                   Smart Cafe POS
                 </p>
               </div>
@@ -102,7 +102,7 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
                     `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all ${
                       isActive
                         ? 'bg-[#E58A3A] text-white shadow-md shadow-[#E58A3A]/25 font-semibold'
-                        : 'text-[#D1C6BB] hover:bg-[#5C3A21]/40 hover:text-white'
+                        : 'text-[#617089] hover:bg-[#FFF7EC] hover:text-[#E27B17]'
                     }`
                   }
                 >
@@ -127,10 +127,10 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
         </div>
 
         {/* Bottom section: Customer QR ordering card & Quick Links */}
-        <div className="p-4 border-t border-[#5C3A21]/40 bg-[#1A120D]">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-[#5C3A21]/60 to-[#241A14] border border-[#5C3A21]/50 text-xs">
+        <div className="p-4 border-t border-[#E5EAF2] bg-[#FBFCFE]">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-[#FFF7EC] to-white border border-[#F5D9B0] text-xs">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-white flex items-center gap-1.5">
+                <span className="font-semibold text-[#24324A] flex items-center gap-1.5">
                 <QrCode className="w-3.5 h-3.5 text-[#E58A3A]" />
                 Customer QR Menu
               </span>
@@ -138,7 +138,7 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
                 Ready
               </span>
             </div>
-            <p className="text-[11px] text-[#A8988B] mb-2.5">
+            <p className="text-[11px] text-[#8290A5] mb-2.5">
               Customers scan to self-order from any table.
             </p>
             <Link
@@ -153,10 +153,10 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
           </div>
 
           <div className="mt-3 flex items-center justify-between text-[11px] text-[#8A7A6E] px-1">
-            <span>Demo Mode Active</span>
-            <span className="flex items-center gap-1 text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              100% Offline/Sync
+            <span>Cloud workspace</span>
+            <span className="flex items-center gap-1 text-emerald-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Connected
             </span>
           </div>
         </div>

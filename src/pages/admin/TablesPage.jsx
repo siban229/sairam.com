@@ -11,6 +11,7 @@ import {
   Plus,
   Eye,
   ExternalLink,
+  Pencil,
   CheckCircle2,
   AlertCircle,
   Coffee,
@@ -23,6 +24,9 @@ export default function TablesPage() {
   const [selectedTableForQR, setSelectedTableForQR] = useState(null);
   const [selectedTableForOrder, setSelectedTableForOrder] = useState(null);
   const [showAddTableModal, setShowAddTableModal] = useState(false);
+  const [selectedTableForEdit, setSelectedTableForEdit] = useState(null);
+  const [editTableCapacity, setEditTableCapacity] = useState(4);
+  const [editTableName, setEditTableName] = useState('');
   const [newTableCapacity, setNewTableCapacity] = useState(4);
 
   // Status categories
@@ -185,6 +189,17 @@ export default function TablesPage() {
               {/* Action Buttons: QR Code, Reset, View Order */}
               <div className="pt-3 border-t border-[#E8E0D5]/70 flex items-center justify-between gap-1.5">
                 <button
+                  onClick={() => {
+                    setSelectedTableForEdit(table);
+                    setEditTableCapacity(table.capacity || 4);
+                    setEditTableName(table.name || '');
+                  }}
+                  className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D9] text-[#5C3A21] border border-[#E8E0D5] transition-colors"
+                  title="Edit table"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => setSelectedTableForQR(table)}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-[#FAF7F2] hover:bg-[#EAE3D9] text-[#5C3A21] border border-[#E8E0D5] text-xs font-semibold transition-colors"
                   title="Generate & Print Table QR Code"
@@ -336,6 +351,52 @@ export default function TablesPage() {
                   Create Table
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Table Modal */}
+      {selectedTableForEdit && (
+        <div className="fixed inset-0 z-50 bg-[#241A14]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-[#E8E0D5]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-[#241A14]">Edit {selectedTableForEdit.name}</h3>
+              <button onClick={() => setSelectedTableForEdit(null)} className="w-8 h-8 rounded-full bg-[#F8F5F0] text-[#665A4F] font-bold">✕</button>
+            </div>
+            <label className="text-xs font-semibold text-[#665A4F] block mb-1">Seating Capacity (Guests)</label>
+            <label className="text-xs font-semibold text-[#665A4F] block mb-1">Table Name</label>
+            <input
+              type="text"
+              required
+              value={editTableName}
+              onChange={(e) => setEditTableName(e.target.value)}
+              placeholder="e.g. Window Table"
+              className="w-full mb-4 text-xs font-semibold py-2 px-3 rounded-xl bg-white border border-[#E8E0D5] text-[#241A14]"
+            />
+            <label className="text-xs font-semibold text-[#665A4F] block mb-1">Seating Capacity (Guests)</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={editTableCapacity}
+              onChange={(e) => setEditTableCapacity(Number(e.target.value))}
+              className="w-full text-xs font-semibold py-2 px-3 rounded-xl bg-white border border-[#E8E0D5] text-[#241A14]"
+            />
+            <div className="flex justify-end gap-2 mt-5">
+              <button onClick={() => setSelectedTableForEdit(null)} className="px-4 py-2 rounded-xl text-xs font-semibold text-[#665A4F] hover:bg-[#F8F5F0]">Cancel</button>
+              <button
+                onClick={() => {
+                  editTable(selectedTableForEdit.id, {
+                    name: editTableName.trim() || selectedTableForEdit.name,
+                    capacity: editTableCapacity
+                  });
+                  setSelectedTableForEdit(null);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#E58A3A] text-white hover:bg-[#D77A28]"
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

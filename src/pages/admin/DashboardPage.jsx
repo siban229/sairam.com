@@ -62,19 +62,19 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner / Welcome */}
-      <div className="bg-gradient-to-r from-[#241A14] to-[#5C3A21] rounded-3xl p-6 sm:p-8 text-[#F8F5F0] shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-white via-[#FFF9F1] to-[#FFF0D9] rounded-3xl p-6 sm:p-8 text-[#24324A] shadow-[0_18px_45px_rgba(235,141,45,0.14)] border border-[#F4DFC2] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="relative z-10 max-w-xl">
           <div className="flex items-center gap-2 mb-2">
             <span className="px-2.5 py-1 rounded-full bg-[#E58A3A]/20 border border-[#E58A3A]/40 text-[#E58A3A] text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               Real-time Operations
             </span>
-            <span className="text-xs text-[#C8BAAA]">Demo Mode Active</span>
+            <span className="text-xs text-[#8290A5]">Live workspace</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#24324A] tracking-tight">
             {settings.cafeName || 'Sairam Chahawala'}
           </h2>
-          <p className="text-sm text-[#C8BAAA] mt-1">
+          <p className="text-sm text-[#617089] mt-1">
             Seamless table management, QR self-ordering, automated kitchen display, and loyalty perks.
           </p>
         </div>

@@ -39,7 +39,13 @@ export default function CustomerMenuPage() {
   const rawTableParam = searchParams.get('table') || 'Table 04';
   const tableNumberParsed = rawTableParam.replace(/\D/g, '') || '04';
   const detectedTableName = `Table ${tableNumberParsed.padStart(2, '0')}`;
-  const currentTable = tables.find(t => t.name.toLowerCase() === detectedTableName.toLowerCase()) || tables[3] || tables[0];
+  const currentTable = tables.find(t => t.name?.toLowerCase() === detectedTableName.toLowerCase()) || tables[3] || tables[0] || {
+    id: `TEMP-${tableNumberParsed}`,
+    number: Number(tableNumberParsed),
+    name: detectedTableName,
+    capacity: 0,
+    status: 'Available'
+  };
 
   // Active Category filter & search
   const [activeCategory, setActiveCategory] = useState('All');
@@ -72,7 +78,8 @@ export default function CustomerMenuPage() {
     'Sandwich',
     'Cold Drinks',
     'Desserts',
-    'Snacks'
+    'Snacks',
+    'Other'
   ];
 
   // Lookup customer when phone reaches 10 digits
@@ -97,7 +104,7 @@ export default function CustomerMenuPage() {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesVeg = !vegOnly || item.isVeg;
-    return matchesCat && matchesSearch && matchesVeg;
+    return matchesCat && matchesSearch && matchesVeg && item.available !== false && item.showOnQr !== false;
   });
 
   // Open item modal

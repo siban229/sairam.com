@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Keep real files and folders working normally.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# React Router fallback for QR/customer/admin deep links.
+RewriteRule ^ index.html [L]

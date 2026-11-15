@@ -9,6 +9,13 @@ import {
   INITIAL_COUPONS
 } from '../data/initialData';
 import { announceNewOrder, testVoiceAnnouncement, playChimeSound } from '../utils/audio';
+import { db } from '../lib/firebase';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  setDoc
+} from 'firebase/firestore';
 
 const CafeContext = createContext(null);
 
@@ -22,7 +29,12 @@ const STORAGE_KEYS = {
   ANNOUNCED_ORDERS: 'cafeflow_announced_orders_v1'
 };
 
+const saveCollection = async (name, items) => {
+  await Promise.all(items.map(item => setDoc(doc(db, name, String(item.id)), item)));
+};
+
 export function CafeProvider({ children }) {
+  const [firestoreReady, setFirestoreReady] = useState(false);
   // 1. Settings State
   const [settings, setSettings] = useState(() => {
     try {
@@ -44,9 +56,9 @@ export function CafeProvider({ children }) {
   const [tables, setTables] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TABLES);
-      return saved ? JSON.parse(saved) : INITIAL_TABLES;
+      return [];
     } catch {
-      return INITIAL_TABLES;
+      return [];
     }
   });
 
@@ -54,9 +66,9 @@ export function CafeProvider({ children }) {
   const [menuItems, setMenuItems] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.MENU);
-      return saved ? JSON.parse(saved) : INITIAL_MENU_ITEMS;
+      return [];
     } catch {
-      return INITIAL_MENU_ITEMS;
+      return [];
     }
   });
 
@@ -64,9 +76,9 @@ export function CafeProvider({ children }) {
   const [customers, setCustomers] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
-      return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
+      return [];
     } catch {
-      return INITIAL_CUSTOMERS;
+      return [];
     }
   });
 
@@ -74,9 +86,9 @@ export function CafeProvider({ children }) {
   const [orders, setOrders] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
-      return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+      return [];
     } catch {
-      return INITIAL_ORDERS;
+      return [];
     }
   });
 
@@ -84,9 +96,9 @@ export function CafeProvider({ children }) {
   const [coupons, setCoupons] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.COUPONS);
-      return saved ? JSON.parse(saved) : INITIAL_COUPONS;
+      return [];
     } catch {
-      return INITIAL_COUPONS;
+      return [];
     }
   });
 
@@ -114,25 +126,43 @@ export function CafeProvider({ children }) {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   }, [settings]);
 
+  // Firestore is the source of truth. Empty collections intentionally stay empty;
+  // the old demo seed data is no longer loaded into the app.
+  useEffect(() => {
+    const unsubs = [
+      onSnapshot(collection(db, 'tables'), snap => { setTables(snap.docs.map(d => d.data())); setFirestoreReady(true); }),
+      onSnapshot(collection(db, 'menuItems'), snap => setMenuItems(snap.docs.map(d => d.data()))),
+      onSnapshot(collection(db, 'customers'), snap => setCustomers(snap.docs.map(d => d.data()))),
+      onSnapshot(collection(db, 'orders'), snap => setOrders(snap.docs.map(d => d.data()))),
+      onSnapshot(collection(db, 'coupons'), snap => setCoupons(snap.docs.map(d => d.data())))
+    ];
+    return () => unsubs.forEach(unsub => unsub());
+  }, []);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.TABLES, JSON.stringify(tables));
-  }, [tables]);
+    if (firestoreReady) saveCollection('tables', tables).catch(console.error);
+  }, [tables, firestoreReady]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MENU, JSON.stringify(menuItems));
-  }, [menuItems]);
+    if (firestoreReady) saveCollection('menuItems', menuItems).catch(console.error);
+  }, [menuItems, firestoreReady]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
-  }, [customers]);
+    if (firestoreReady) saveCollection('customers', customers).catch(console.error);
+  }, [customers, firestoreReady]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-  }, [orders]);
+    if (firestoreReady) saveCollection('orders', orders).catch(console.error);
+  }, [orders, firestoreReady]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(coupons));
-  }, [coupons]);
+    if (firestoreReady) saveCollection('coupons', coupons).catch(console.error);
+  }, [coupons, firestoreReady]);
 
   // Toast helper
   const addToast = (message, type = 'info', duration = 3500) => {
@@ -542,6 +572,7 @@ export function CafeProvider({ children }) {
       ...itemData,
       id: `M-CUSTOM-${Date.now().toString(36)}`,
       available: itemData.available !== undefined ? itemData.available : true,
+      showOnQr: itemData.showOnQr !== undefined ? itemData.showOnQr : true,
       price: Number(itemData.price) || 0
     };
     setMenuItems(prev => [newItem, ...prev]);
@@ -572,6 +603,13 @@ export function CafeProvider({ children }) {
         item.id === id ? { ...item, available: !item.available } : item
       )
     );
+  };
+
+  const toggleItemQrVisibility = (id) => {
+    setMenuItems(prev => prev.map(item => (
+      item.id === id ? { ...item, showOnQr: item.showOnQr === false } : item
+    )));
+    addToast('QR menu visibility updated', 'success');
   };
 
   // --- Customer / CRM Lookup & Updates ---
@@ -634,19 +672,19 @@ export function CafeProvider({ children }) {
   // --- Reset Entire Demo Data ---
   const resetDemoData = () => {
     setSettings(INITIAL_SETTINGS);
-    setTables(INITIAL_TABLES);
-    setMenuItems(INITIAL_MENU_ITEMS);
-    setCustomers(INITIAL_CUSTOMERS);
-    setOrders(INITIAL_ORDERS);
-    setCoupons(INITIAL_COUPONS);
-    announcedOrderIdsRef.current = new Set(INITIAL_ORDERS.map(o => o.id));
+    setTables([]);
+    setMenuItems([]);
+    setCustomers([]);
+    setOrders([]);
+    setCoupons([]);
+    announcedOrderIdsRef.current = new Set();
 
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(INITIAL_SETTINGS));
-    localStorage.setItem(STORAGE_KEYS.TABLES, JSON.stringify(INITIAL_TABLES));
-    localStorage.setItem(STORAGE_KEYS.MENU, JSON.stringify(INITIAL_MENU_ITEMS));
-    localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(INITIAL_CUSTOMERS));
-    localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(INITIAL_ORDERS));
-    localStorage.setItem(STORAGE_KEYS.COUPONS, JSON.stringify(INITIAL_COUPONS));
+    localStorage.removeItem(STORAGE_KEYS.TABLES);
+    localStorage.removeItem(STORAGE_KEYS.MENU);
+    localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
+    localStorage.removeItem(STORAGE_KEYS.ORDERS);
+    localStorage.removeItem(STORAGE_KEYS.COUPONS);
     localStorage.setItem(
       STORAGE_KEYS.ANNOUNCED_ORDERS,
       JSON.stringify([...announcedOrderIdsRef.current])
@@ -703,6 +741,7 @@ export function CafeProvider({ children }) {
     updateMenuItem,
     deleteMenuItem,
     toggleItemAvailability,
+    toggleItemQrVisibility,
     customers,
     getCustomerByPhone,
     updateCustomer,
