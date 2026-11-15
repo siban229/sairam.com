@@ -53,9 +53,9 @@ export default function CustomerOrderTrackingPage() {
   };
 
   const handleRequestBill = () => {
-    if (order) {
+    if (order && order.status !== 'Billing' && order.status !== 'Completed') {
       updateOrderStatus(order.id, 'Billing');
-      addToast('Bill requested! Staff is printing your invoice.', 'info');
+      addToast('Bill requested! Staff has been notified.', 'success');
     }
   };
 
@@ -187,10 +187,11 @@ export default function CustomerOrderTrackingPage() {
 
         <button
           onClick={handleRequestBill}
+          disabled={order.status === 'Billing' || order.status === 'Completed'}
           className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-[#5C3A21] hover:bg-[#4B2E19] text-white font-bold text-xs shadow-md transition-all"
         >
           <Sparkles className="w-4 h-4 text-[#E58A3A]" />
-          <span>Request Bill</span>
+          <span>{order.status === 'Billing' ? 'Bill Requested' : order.status === 'Completed' ? 'Bill Paid' : 'Request Bill'}</span>
         </button>
       </div>
 

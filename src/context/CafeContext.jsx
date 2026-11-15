@@ -333,12 +333,18 @@ export function CafeProvider({ children }) {
   };
 
   const updateOrderStatus = (orderId, newStatus) => {
-    let affectedOrder = null;
+    const existingOrder = orders.find(ord => ord.id === orderId);
+    if (!existingOrder) return;
+
+    const affectedOrder = {
+      ...existingOrder,
+      status: newStatus,
+      ...(newStatus === 'Billing' ? { billRequestedAt: new Date().toISOString() } : {})
+    };
 
     setOrders(prev =>
       prev.map(ord => {
         if (ord.id === orderId) {
-          affectedOrder = { ...ord, status: newStatus };
           return affectedOrder;
         }
         return ord;
@@ -346,7 +352,7 @@ export function CafeProvider({ children }) {
     );
 
     // Synchronize Table status accordingly
-    if (affectedOrder && affectedOrder.tableId) {
+    if (affectedOrder.tableId) {
       if (newStatus === 'Preparing') {
         updateTableStatus(affectedOrder.tableId, 'Preparing', orderId);
         playChimeSound();
@@ -360,7 +366,7 @@ export function CafeProvider({ children }) {
         addToast(`Order #${orderId} has been Served`, 'info');
       } else if (newStatus === 'Billing') {
         updateTableStatus(affectedOrder.tableId, 'Billing', orderId);
-        addToast(`Bill requested for Table #${affectedOrder.tableNumber}`, 'info');
+        addToast(`🔔 Bill requested for ${affectedOrder.tableName || `Table #${affectedOrder.tableNumber}`}`, 'info', 6000);
       } else if (newStatus === 'Completed') {
         // Table resets to available when completed
         resetTable(affectedOrder.tableId);
