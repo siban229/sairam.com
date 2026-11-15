@@ -104,6 +104,7 @@ export function CafeProvider({ children }) {
 
   // Voice Announcement tracking to prevent duplicates on refresh
   const announcedOrderIdsRef = useRef(new Set());
+  const observedOrderIdsRef = useRef(null);
   const [lastVoiceAlert, setLastVoiceAlert] = useState(null);
   const [toasts, setToasts] = useState([]);
 
@@ -133,7 +134,29 @@ export function CafeProvider({ children }) {
       onSnapshot(collection(db, 'tables'), snap => { setTables(snap.docs.map(d => d.data())); setFirestoreReady(true); }),
       onSnapshot(collection(db, 'menuItems'), snap => setMenuItems(snap.docs.map(d => d.data()))),
       onSnapshot(collection(db, 'customers'), snap => setCustomers(snap.docs.map(d => d.data()))),
-      onSnapshot(collection(db, 'orders'), snap => setOrders(snap.docs.map(d => d.data()))),
+      onSnapshot(collection(db, 'orders'), snap => {
+        const nextOrders = snap.docs.map(d => d.data());
+        const nextIds = new Set(nextOrders.map(order => order.id));
+        const isStaffScreen = typeof window !== 'undefined' &&
+          (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/kitchen'));
+
+        // Do not announce the initial Firestore load. Announce only orders that
+        // arrive afterwards on the dashboard/KDS device.
+        if (observedOrderIdsRef.current && isStaffScreen && settings.voiceEnabled) {
+          nextOrders
+            .filter(order => !observedOrderIdsRef.current.has(order.id) && order.status !== 'Cancelled')
+            .forEach(order => {
+              announceNewOrder(order, {
+                rate: settings.voiceRate || 1.0,
+                pitch: settings.voicePitch || 1.0,
+                volume: settings.voiceVolume || 1.0
+              });
+              addToast(`🔔 Order received from ${order.tableName || `Table ${order.tableNumber}`}`, 'success', 6000);
+            });
+        }
+        observedOrderIdsRef.current = nextIds;
+        setOrders(nextOrders);
+      }),
       onSnapshot(collection(db, 'coupons'), snap => setCoupons(snap.docs.map(d => d.data())))
     ];
     return () => unsubs.forEach(unsub => unsub());
@@ -309,23 +332,6 @@ export function CafeProvider({ children }) {
     // Update table status to Order Pending
     if (orderData.tableId) {
       updateTableStatus(orderData.tableId, 'Order Pending', orderId);
-    }
-
-    // Voice announcement if enabled & not announced
-    if (settings.voiceEnabled && !announcedOrderIdsRef.current.has(orderId)) {
-      announcedOrderIdsRef.current.add(orderId);
-      localStorage.setItem(
-        STORAGE_KEYS.ANNOUNCED_ORDERS,
-        JSON.stringify([...announcedOrderIdsRef.current])
-      );
-      const spokenText = announceNewOrder(newOrder, {
-        rate: settings.voiceRate || 1.0,
-        pitch: settings.voicePitch || 1.0,
-        volume: settings.voiceVolume || 1.0
-      });
-      setLastVoiceAlert(spokenText);
-    } else {
-      playChimeSound();
     }
 
     addToast(`New order #${orderId} placed for ${newOrder.tableName}!`, 'success');

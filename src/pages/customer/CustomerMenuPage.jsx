@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCafe } from '../../context/CafeContext';
 import { formatCurrency } from '../../utils/formatters';
+import { speakAnnouncement } from '../../utils/audio';
 import {
   Coffee,
   Search,
@@ -200,6 +201,12 @@ export default function CustomerMenuPage() {
       discount: discountAmount,
       couponApplied: appliedCoupon?.code || null,
       status: 'Order Pending'
+    });
+
+    speakAnnouncement(`Your order has been sent successfully. Order number ${newOrder.id.replace('ORD-', '')}.`, {
+      rate: 1,
+      pitch: 1,
+      volume: 0.9
     });
 
     triggerConfetti();
