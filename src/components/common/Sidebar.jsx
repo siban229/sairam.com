@@ -16,6 +16,7 @@ import {
   X,
   Sparkles,
   ExternalLink
+  ,Receipt
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
@@ -24,6 +25,7 @@ export default function Sidebar({ mobileOpen, closeMobileSidebar }) {
   const navItems = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { to: '/admin/pos', label: 'POS & Billing', icon: Calculator, badge: null },
+    { to: '/admin/billing', label: 'Bills & Invoices', icon: Receipt, badge: stats.ordersRequiringPayment || null },
     {
       to: '/admin/tables',
       label: 'Tables',

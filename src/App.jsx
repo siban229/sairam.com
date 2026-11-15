@@ -14,6 +14,7 @@ import CustomersPage from './pages/admin/CustomersPage';
 import LoyaltyPage from './pages/admin/LoyaltyPage';
 import ReportsPage from './pages/admin/ReportsPage';
 import SettingsPage from './pages/admin/SettingsPage';
+import BillingPage from './pages/admin/BillingPage';
 import LoginPage from './pages/admin/LoginPage';
 
 // Customer Pages
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="pos" element={<PosPage />} />
+              <Route path="billing" element={<BillingPage />} />
               <Route path="tables" element={<TablesPage />} />
               <Route path="kitchen" element={<KitchenPage isFullscreen={false} />} />
               <Route path="menu" element={<MenuPage />} />
